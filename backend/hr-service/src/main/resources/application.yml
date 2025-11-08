@@ -22,3 +22,7 @@ management:
     web:
       exposure:
         include: health,info
+
+app:
+  jwt:
+    secret: this_is_a_dev_only_secret_change_me

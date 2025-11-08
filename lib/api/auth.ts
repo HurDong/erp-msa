@@ -15,6 +15,7 @@ type AuthResponse = {
   email: string
   fullName: string
   role: string
+  permissions: string[]
 }
 
 async function request(path: string, payload: AuthRequest): Promise<AuthResponse> {

@@ -44,7 +44,14 @@ public class AuthService {
         userRepository.save(user);
 
         String token = jwtTokenProvider.generateToken(user);
-        return AuthResponse.of(token, jwtTokenProvider.getExpirationMillis(), user.getEmail(), user.getFullName(), user.getRole().name());
+        return AuthResponse.of(
+                token,
+                jwtTokenProvider.getExpirationMillis(),
+                user.getEmail(),
+                user.getFullName(),
+                user.getRole().name(),
+                user.getRole().permissions()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -57,7 +64,14 @@ public class AuthService {
         }
 
         String token = jwtTokenProvider.generateToken(user);
-        return AuthResponse.of(token, jwtTokenProvider.getExpirationMillis(), user.getEmail(), user.getFullName(), user.getRole().name());
+        return AuthResponse.of(
+                token,
+                jwtTokenProvider.getExpirationMillis(),
+                user.getEmail(),
+                user.getFullName(),
+                user.getRole().name(),
+                user.getRole().permissions()
+        );
     }
 }
 
