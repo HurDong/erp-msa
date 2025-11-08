@@ -1,0 +1,15 @@
+ARG SERVICE_NAME
+
+FROM gradle:8.7-jdk17 AS builder
+ARG SERVICE_NAME
+WORKDIR /workspace
+COPY . .
+RUN gradle :${SERVICE_NAME}:bootJar --no-daemon
+
+FROM eclipse-temurin:17-jre
+ARG SERVICE_NAME
+ENV SERVICE_NAME=${SERVICE_NAME}
+WORKDIR /app
+COPY --from=builder /workspace/${SERVICE_NAME}/build/libs/${SERVICE_NAME}-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java","-jar","/app/app.jar"]
+

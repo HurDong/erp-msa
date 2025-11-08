@@ -1,0 +1,12 @@
+rootProject.name = "erp-msa"
+
+include(
+    "common",
+    "gateway",
+    "auth-service",
+    "hr-service",
+    "inventory-service",
+    "accounting-service",
+    "admin-service"
+)
+
