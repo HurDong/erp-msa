@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { HROverview } from "@/components/hr/hr-overview"
 import { EmployeeStats } from "@/components/hr/employee-stats"
@@ -6,28 +9,41 @@ import { UpcomingLeaves } from "@/components/hr/upcoming-leaves"
 import { NewEmployeeOnboarding } from "@/components/hr/new-employee-onboarding"
 import { TeamNotices } from "@/components/hr/team-notices"
 import { DepartmentStat } from "@/lib/types/hr"
+import { apiGet } from "@/lib/api/client"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"
+export default function HRPage() {
+  const [departmentStats, setDepartmentStats] = useState<DepartmentStat[]>([])
+  const [loading, setLoading] = useState(true)
 
-async function fetchDepartmentStats(): Promise<DepartmentStat[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/hr/departments/stats`, {
-      cache: "no-store",
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch department stats: ${response.status}`)
+  useEffect(() => {
+    async function fetchDepartmentStats() {
+      try {
+        setLoading(true)
+        const data = await apiGet<DepartmentStat[]>("/api/hr/departments/stats")
+        setDepartmentStats(data)
+      } catch (error) {
+        console.error("[hr] failed to load department stats", error)
+        setDepartmentStats([])
+      } finally {
+        setLoading(false)
+      }
     }
 
-    return (await response.json()) as DepartmentStat[]
-  } catch (error) {
-    console.error("[hr] failed to load department stats", error)
-    return []
-  }
-}
+    fetchDepartmentStats()
+  }, [])
 
-export default async function HRPage() {
-  const departmentStats = await fetchDepartmentStats()
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <DashboardHeader />
+        <main className="flex-1 p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-muted-foreground">로딩 중...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

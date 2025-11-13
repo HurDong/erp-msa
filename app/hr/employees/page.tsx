@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { EmployeeList } from "@/components/hr/employee-list"
 import { Button } from "@/components/ui/button"
@@ -5,28 +8,41 @@ import { Input } from "@/components/ui/input"
 import { Plus, Search } from "lucide-react"
 import Link from "next/link"
 import { Employee } from "@/lib/types/hr"
+import { apiGet } from "@/lib/api/client"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"
+export default function EmployeesPage() {
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [loading, setLoading] = useState(true)
 
-async function fetchEmployees(): Promise<Employee[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/hr/employees`, {
-      cache: "no-store",
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch employees: ${response.status}`)
+  useEffect(() => {
+    async function fetchEmployees() {
+      try {
+        setLoading(true)
+        const data = await apiGet<Employee[]>("/api/hr/employees")
+        setEmployees(data)
+      } catch (error) {
+        console.error("[hr] failed to load employees", error)
+        setEmployees([])
+      } finally {
+        setLoading(false)
+      }
     }
 
-    return (await response.json()) as Employee[]
-  } catch (error) {
-    console.error("[hr] failed to load employees", error)
-    return []
-  }
-}
+    fetchEmployees()
+  }, [])
 
-export default async function EmployeesPage() {
-  const employees = await fetchEmployees()
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <DashboardHeader />
+        <main className="flex-1 p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-muted-foreground">로딩 중...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

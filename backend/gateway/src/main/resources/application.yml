@@ -7,26 +7,32 @@ spring:
   cloud:
     gateway:
       routes:
+        # 인증 서비스 - 공개 접근 허용
         - id: auth-service
           uri: http://auth-service:8081
           predicates:
             - Path=/api/auth/**
+        # HR 서비스 - 인증 필요, hr:read 권한 필요
         - id: hr-service
           uri: http://hr-service:8082
           predicates:
             - Path=/api/hr/**
+        # 재고 서비스 - 인증 필요, inventory:read 권한 필요
         - id: inventory-service
           uri: http://inventory-service:8083
           predicates:
             - Path=/api/inventory/**
+        # 회계 서비스 - 인증 필요, accounting:read 권한 필요
         - id: accounting-service
           uri: http://accounting-service:8084
           predicates:
             - Path=/api/accounting/**
+        # 관리자 서비스 - 인증 필요, ADMIN 역할 필요
         - id: admin-service
           uri: http://admin-service:8085
           predicates:
             - Path=/api/admin/**
+      # 글로벌 CORS 설정
       globalcors:
         add-to-simple-url-handler-mapping: true
         corsConfigurations:
@@ -46,6 +52,11 @@ spring:
     host: redis
     port: 6379
 
+# JWT 설정 (auth-service와 동일한 secret 사용)
+app:
+  jwt:
+    secret: this_is_a_dev_only_secret_change_me
+
 management:
   endpoints:
     web:
@@ -55,3 +66,5 @@ management:
 logging:
   level:
     org.springframework.cloud.gateway: INFO
+    com.erpmsa.gateway: DEBUG
+    root: INFO

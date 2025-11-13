@@ -1,14 +1,14 @@
 "use client"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"
+import { apiPost } from "./client"
 
-type AuthRequest = {
+export type AuthRequest = {
   email: string
   password: string
   fullName?: string
 }
 
-type AuthResponse = {
+export type AuthResponse = {
   accessToken: string
   tokenType: string
   expiresIn: number
@@ -18,30 +18,23 @@ type AuthResponse = {
   permissions: string[]
 }
 
-async function request(path: string, payload: AuthRequest): Promise<AuthResponse> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  })
-
-  if (!res.ok) {
-    const message = await res
-      .json()
-      .catch(() => ({ message: res.statusText }))
-    throw new Error(message.message ?? "요청 처리 중 오류가 발생했습니다.")
-  }
-
-  return (await res.json()) as AuthResponse
-}
-
+/**
+ * 회원가입
+ * 인증이 필요 없으므로 requireAuth: false로 설정
+ */
 export function register(payload: AuthRequest) {
-  return request("/api/auth/register", payload)
+  return apiPost<AuthResponse>("/api/auth/register", payload, {
+    requireAuth: false,
+  })
 }
 
+/**
+ * 로그인
+ * 인증이 필요 없으므로 requireAuth: false로 설정
+ */
 export function login(payload: AuthRequest) {
-  return request("/api/auth/login", payload)
+  return apiPost<AuthResponse>("/api/auth/login", payload, {
+    requireAuth: false,
+  })
 }
 

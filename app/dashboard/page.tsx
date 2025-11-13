@@ -1,31 +1,47 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { AnimatedOverviewCards } from "@/components/dashboard/animated-overview-cards"
 import { RecentActivityAnimated } from "@/components/dashboard/recent-activity-animated"
 import { QuickActionsAnimated } from "@/components/dashboard/quick-actions-animated"
 import { PerformanceOverview } from "@/components/dashboard/performance-overview"
 import { DashboardSummary } from "@/lib/types/dashboard"
+import { apiGet } from "@/lib/api/client"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"
+export default function DashboardPage() {
+  const [summary, setSummary] = useState<DashboardSummary | null>(null)
+  const [loading, setLoading] = useState(true)
 
-async function fetchDashboardSummary(): Promise<DashboardSummary | null> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/dashboard`, {
-      cache: "no-store",
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch dashboard summary: ${response.status}`)
+  useEffect(() => {
+    async function fetchDashboardSummary() {
+      try {
+        setLoading(true)
+        const data = await apiGet<DashboardSummary>("/api/admin/dashboard")
+        setSummary(data)
+      } catch (error) {
+        console.error("[dashboard] failed to load summary", error)
+        setSummary(null)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    return (await response.json()) as DashboardSummary
-  } catch (error) {
-    console.error("[dashboard] failed to load summary", error)
-    return null
-  }
-}
+    fetchDashboardSummary()
+  }, [])
 
-export default async function DashboardPage() {
-  const summary = await fetchDashboardSummary()
+  if (loading) {
+    return (
+      <div className="relative flex min-h-screen flex-col pattern-dots">
+        <DashboardHeader />
+        <main className="relative z-10 flex-1 p-6 lg:p-10">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-muted-foreground">로딩 중...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col pattern-dots">
