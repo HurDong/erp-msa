@@ -1,4 +1,4 @@
-package com.erpmsa.hr.dto;
+package com.erpmsa.gateway.dto;
 
 public record ProductResponse(
         Long id,

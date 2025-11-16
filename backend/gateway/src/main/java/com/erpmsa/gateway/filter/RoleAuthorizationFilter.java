@@ -115,7 +115,7 @@ public class RoleAuthorizationFilter implements GlobalFilter, Ordered {
 
     private String getRequiredPermission(String path) {
         // 경로에 따라 필요한 권한 반환
-        if (path.startsWith("/api/hr")) {
+        if (path.startsWith("/api/hr") || path.startsWith("/api/bff")) {
             return "hr:write";
         } else if (path.startsWith("/api/inventory")) {
             return "inventory:write";

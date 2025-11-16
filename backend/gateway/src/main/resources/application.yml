@@ -125,6 +125,15 @@ app:
   jwt:
     secret: this_is_a_dev_only_secret_change_me
 
+# 서비스 URL 설정 (BFF용)
+services:
+  hr:
+    url: http://hr-service:8082
+  inventory:
+    url: http://inventory-service:8083
+  accounting:
+    url: http://accounting-service:8084
+
 # Resilience4j CircuitBreaker 설정
 resilience4j:
   circuitbreaker:
