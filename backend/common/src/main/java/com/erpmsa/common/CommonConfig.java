@@ -2,7 +2,12 @@ package com.erpmsa.common;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+
+import java.time.Duration;
 
 @Configuration
 public class CommonConfig {
@@ -11,5 +16,14 @@ public class CommonConfig {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
-}
 
+    @Bean
+    public WebClient.Builder webClientBuilder() {
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofSeconds(2))
+                .connectTimeout(Duration.ofMillis(500));
+
+        return WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient));
+    }
+}
