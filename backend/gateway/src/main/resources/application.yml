@@ -6,32 +6,100 @@ spring:
     name: gateway
   cloud:
     gateway:
+      httpclient:
+        connect-timeout: 500ms
+        response-timeout: 2s
       routes:
         # 인증 서비스 - 공개 접근 허용
         - id: auth-service
           uri: http://auth-service:8081
           predicates:
             - Path=/api/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authClient
+                fallbackUri: forward:/fallback/auth
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,GATEWAY_TIMEOUT,INTERNAL_SERVER_ERROR
+                backoff:
+                  firstBackoff: 200ms
+                  maxBackoff: 1s
+                  factor: 2
         # HR 서비스 - 인증 필요, hr:read 권한 필요
         - id: hr-service
           uri: http://hr-service:8082
           predicates:
             - Path=/api/hr/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: hrClient
+                fallbackUri: forward:/fallback/hr
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,GATEWAY_TIMEOUT,INTERNAL_SERVER_ERROR
+                backoff:
+                  firstBackoff: 200ms
+                  maxBackoff: 1s
+                  factor: 2
         # 재고 서비스 - 인증 필요, inventory:read 권한 필요
         - id: inventory-service
           uri: http://inventory-service:8083
           predicates:
             - Path=/api/inventory/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: inventoryClient
+                fallbackUri: forward:/fallback/inventory
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,GATEWAY_TIMEOUT,INTERNAL_SERVER_ERROR
+                backoff:
+                  firstBackoff: 200ms
+                  maxBackoff: 1s
+                  factor: 2
         # 회계 서비스 - 인증 필요, accounting:read 권한 필요
         - id: accounting-service
           uri: http://accounting-service:8084
           predicates:
             - Path=/api/accounting/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: accountingClient
+                fallbackUri: forward:/fallback/accounting
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,GATEWAY_TIMEOUT,INTERNAL_SERVER_ERROR
+                backoff:
+                  firstBackoff: 200ms
+                  maxBackoff: 1s
+                  factor: 2
         # 관리자 서비스 - 인증 필요, ADMIN 역할 필요
         - id: admin-service
           uri: http://admin-service:8085
           predicates:
             - Path=/api/admin/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: adminClient
+                fallbackUri: forward:/fallback/admin
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY,GATEWAY_TIMEOUT,INTERNAL_SERVER_ERROR
+                backoff:
+                  firstBackoff: 200ms
+                  maxBackoff: 1s
+                  factor: 2
       # 글로벌 CORS 설정
       globalcors:
         add-to-simple-url-handler-mapping: true
@@ -57,11 +125,73 @@ app:
   jwt:
     secret: this_is_a_dev_only_secret_change_me
 
+# Resilience4j CircuitBreaker 설정
+resilience4j:
+  circuitbreaker:
+    instances:
+      authClient:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        slowCallDurationThreshold: 1s
+        slowCallRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      hrClient:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        slowCallDurationThreshold: 1s
+        slowCallRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      inventoryClient:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        slowCallDurationThreshold: 1s
+        slowCallRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      accountingClient:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        slowCallDurationThreshold: 1s
+        slowCallRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      adminClient:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        slowCallDurationThreshold: 1s
+        slowCallRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+  timelimiter:
+    instances:
+      authClient:
+        timeoutDuration: 2s
+      hrClient:
+        timeoutDuration: 2s
+      inventoryClient:
+        timeoutDuration: 2s
+      accountingClient:
+        timeoutDuration: 2s
+      adminClient:
+        timeoutDuration: 2s
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,circuitbreakers,circuitbreakerevents
 
 logging:
   level:
